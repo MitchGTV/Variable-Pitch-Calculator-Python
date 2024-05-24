@@ -19,38 +19,31 @@ def calculate_louvres(glass_drop, divider_height_on_glass, min_pitch=28, max_pit
         top_space = total_stile_length - divider_position - top_bottom_rail_size
 
         # Initialize bottom pitch to the maximum pitch
-        bottom_pitch = max_pitch
-        while bottom_pitch >= min_pitch:
+        for bottom_pitch in [x * step for x in range(int(max_pitch / step), int(min_pitch / step) - 1, -1)]:
             # Calculate the number of louvres that fit in the bottom space
             bottom_louvres = int(bottom_space / bottom_pitch)
-            # Check if the louvres fit within the available space
-            if bottom_louvres * bottom_pitch <= bottom_space:
-                # Calculate the gap left after fitting the louvres
-                bottom_gap = bottom_space - bottom_louvres * bottom_pitch
-                break
-            # Decrease the pitch by the step size
-            bottom_pitch -= step
+            if bottom_louvres == 0:
+                continue
+            # Calculate the gap left after fitting the louvres
+            bottom_gap = bottom_space - bottom_louvres * bottom_pitch
 
-        # Initialize top pitch to the maximum pitch
-        top_pitch = max_pitch
-        while top_pitch >= min_pitch:
-            # Calculate the number of louvres that fit in the top space
-            top_louvres = int(top_space / top_pitch)
-            # Check if the louvres fit within the available space
-            if top_louvres * top_pitch <= top_space:
+            for top_pitch in [x * step for x in range(int(max_pitch / step), int(min_pitch / step) - 1, -1)]:
+                # Calculate the number of louvres that fit in the top space
+                top_louvres = int(top_space / top_pitch)
+                if top_louvres == 0:
+                    continue
                 # Calculate the gap left after fitting the louvres
                 top_gap = top_space - top_louvres * top_pitch
-                break
-            # Decrease the pitch by the step size
-            top_pitch -= step
 
-        # Ensure the number of louvres is a whole number for both top and bottom
-        if bottom_louvres == int(bottom_louvres) and top_louvres == int(top_louvres):
-            # Calculate the total gap for the current configuration
-            total_gap = bottom_gap + top_gap
-            # Update the best configuration if the current one has a smaller total gap
-            if best_configuration is None or total_gap < best_configuration[5]:
-                best_configuration = (bottom_pitch, bottom_louvres, top_pitch, top_louvres, divider_position, total_gap)
+                # Ensure the number of louvres is a whole number for both top and bottom
+                if bottom_louvres == int(bottom_louvres) and top_louvres == int(top_louvres):
+                    # Calculate the total gap for the current configuration
+                    total_gap = bottom_gap + top_gap
+                    # Update the best configuration if the current one has fewer louvres or smaller total gap
+                    if (best_configuration is None or
+                            bottom_louvres + top_louvres < best_configuration[1] + best_configuration[3] or
+                            (bottom_louvres + top_louvres == best_configuration[1] + best_configuration[3] and total_gap < best_configuration[5])):
+                        best_configuration = (bottom_pitch, bottom_louvres, top_pitch, top_louvres, divider_position, total_gap)
 
     # Return the best configuration if found
     if best_configuration:
